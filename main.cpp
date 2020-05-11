@@ -36,6 +36,7 @@ struct Config {
   static constexpr char config_path[] = "./config.json";
   bool multisave{true};
   std::string buffer_path{"./clipboard_data"};
+  int max_entries{10};
   std::vector<uint16_t> key_masks{uiohook::VC_YEN /*1*/,
                                   uiohook::VC_CONTROL_L /*2*/,
                                   uiohook::VC_SHIFT_L /*4*/,
@@ -58,6 +59,7 @@ struct Clipboard {
 mask_t pressed_keys = 0;
 action_flag_t action_flag = action_flag_t::PASS;
 bool main_loop = true;
+constexpr size_t max_len = 70; 
 
 std::mutex zone_mutex;
 std::mutex event_mutex;
@@ -203,12 +205,22 @@ void dispatch_proc(uiohook_event *const event/*, mask_t &pressed_keys,
 
 void from_json(nlohmann::json const &j, Clipboard &cb) {
   cb.contents = j.get<std::vector<std::string>>();
+  /*for(auto i : j.get<std::vector<std::string>>()) {
+    //cb.contents.
+  }*/
 }
 
 void from_json(nlohmann::json const &j, Config &config) {
-  j.at("multisave").get_to(config.multisave);
-  j.at("buffer_path").get_to(config.buffer_path);
-  config.key_masks = j.at("masks").get<std::vector<uint16_t>>();
+  if (!j.is_object())
+    std::cerr << "invalid configuration\n";
+  if (j.contains("multisave"))
+    j.at("multisave").get_to(config.multisave);
+  if (j.contains("buffer_path"))
+    j.at("buffer_path").get_to(config.buffer_path);
+  if (j.contains("max_entries"))
+    j.at("max_entries").get_to(config.max_entries);
+  if (j.contains("masks"))
+    config.key_masks = j.at("masks").get<std::vector<uint16_t>>();
 }
 
 constexpr char Config::config_path[];
@@ -251,6 +263,7 @@ void Config::save() {
   nlohmann::json clipboard_json;
   clipboard_json.emplace("multisave", multisave);
   clipboard_json.emplace("buffer_path", buffer_path);
+  clipboard_json.emplace("max_entries", max_entries);
   clipboard_json.emplace("masks", key_masks);
   std::fstream clipboard_f(config_path, std::ios_base::out);
   clipboard_f << clipboard_json;
@@ -307,19 +320,50 @@ bool logger(unsigned int level, const char *format, ...) { return true; }
 
 // using namespace std::chrono_literals;
 
+/*
+void perform_paste(std::lock_guard<std::mutex> const &lock,
+                   std::vector<uint16_t> const &keys_to_press) {
+  lock.~lock_guard();
+  fm->show();
+  std::unique_lock b(zone_mutex);
+  choice_awaiter.wait(b);
+  if (choosen_text) {
+    std::string check_str;
+    if (!clip::set_text(*choosen_text) || !clip::get_text(check_str))
+      std::cerr << "can't set text\n";
+    else
+      uiohook::click_keys(keys_to_press);
+  }
+}
+*/
+
+std::string process_string_to_view(std::string const &str) {
+  std::stringstream ss;
+  ss.str("");
+  for (auto i = str.begin(); i < str.begin()+std::min(str.size(), max_len); ++i)
+    if (*i == '\n')
+      ss << "{endl}";
+    else
+      ss << *i;
+  if(str.size() > max_len) 
+    ss << "...";
+  return ss.str();
+}
+
 void main_proc() {
   clipboard.open(config.buffer_path);
 
   uiohook::hook_set_logger_proc(&logger);
   uiohook::hook_set_dispatch_proc(&uiohook::dispatch_proc);
+  while (clipboard.contents.size() > config.max_entries)
+    clipboard.contents.erase(clipboard.contents.begin());
   for (auto i : clipboard.contents)
-    lb->at(0).append({i});
+    lb->at(0).append({process_string_to_view(i)});
   auto future = std::async(std::launch::async, uiohook::hook_run);
   do {
     {
       std::lock_guard a(zone_mutex);
       if (!pressed_keys && action_flag == action_flag_t::PASTE) {
-
         a.~lock_guard();
         fm->show();
         std::unique_lock b(zone_mutex);
@@ -331,7 +375,6 @@ void main_proc() {
           else
             uiohook::click_keys({uiohook::VC_CONTROL_L, uiohook::VC_V});
         }
-        action_flag = action_flag_t::PASS;
       }
       if (!pressed_keys && action_flag == action_flag_t::PASTE_CONSOLE) {
         a.~lock_guard();
@@ -346,7 +389,6 @@ void main_proc() {
             uiohook::click_keys(
                 {uiohook::VC_CONTROL_L, uiohook::VC_SHIFT_L, uiohook::VC_V});
         }
-        action_flag = action_flag_t::PASS;
       }
       /*under construnction*/
       /*if (!pressed_keys && action_flag == action_flag_t::CUT_CONSOLE) {
@@ -366,9 +408,12 @@ void main_proc() {
       if (!pressed_keys && action_flag == action_flag_t::COPY) {
         std::string board_val;
         clip::get_text(board_val);
+        if (clipboard.contents.size() == config.max_entries) {
+          clipboard.contents.erase(clipboard.contents.begin());
+          lb->erase(lb->at(0).at(0));
+        }
         clipboard.contents.push_back(board_val);
-        lb->at(0).append({board_val});
-        action_flag = action_flag_t::PASS;
+        lb->at(0).append({process_string_to_view(board_val)});
       }
       // if (pressed_keys)
       //   std::cout << "keys " << std::hex << pressed_keys << "\n";
@@ -393,7 +438,7 @@ int main(int argc, char **argv) {
   nana::form window{};
   fm.reset(&window);
   nana::listbox clipboard_view{window, true};
-  clipboard_view.append_header("Copied text", 400);
+  clipboard_view.append_header("Copied text", 600);
   clipboard_view.enable_single(1, 1);
   clipboard_view.borderless(1);
   lb.reset(&clipboard_view);
