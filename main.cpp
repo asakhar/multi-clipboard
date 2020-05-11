@@ -60,7 +60,7 @@ action_flag_t action_flag = action_flag_t::PASS;
 bool main_loop = true;
 
 std::mutex zone_mutex;
-// std::mutex awaiter_mutex;
+std::mutex event_mutex;
 std::condition_variable choice_awaiter;
 std::queue<uiohook::uiohook_event> ignore_events;
 
@@ -188,7 +188,7 @@ void dispatch_proc(uiohook_event *const event/*, mask_t &pressed_keys,
     break;
   }
 
-  if (pressed_keys == 0x21)
+  if (pressed_keys == 0x23)
     action_flag = action_flag_t::PASTE;
   if (pressed_keys == 0x12 || pressed_keys == 0x42 || pressed_keys == 0x16)
     action_flag = action_flag_t::COPY;
@@ -285,7 +285,7 @@ std::string cmd_option_get(Args const &args, std::string const &option) {
 }
 } // namespace argparse
 
-// replace default logger
+// mute default logger
 bool logger(unsigned int level, const char *format, ...) { return true; }
 
 // template <typename _Fy, typename... _Ty> struct Bind {
@@ -319,28 +319,33 @@ void main_proc() {
     {
       std::lock_guard a(zone_mutex);
       if (!pressed_keys && action_flag == action_flag_t::PASTE) {
-        // if (timer.tick()) {
-
-        // uiohook::release_keys({uiohook::VC_YEN, uiohook::VC_V});
-
-        uiohook::click_keys({uiohook::VC_CONTROL_L, uiohook::VC_Z});
 
         a.~lock_guard();
         fm->show();
         std::unique_lock b(zone_mutex);
         choice_awaiter.wait(b);
         if (choosen_text) {
-          clip::set_text(*choosen_text);
-          uiohook::click_keys({uiohook::VC_CONTROL_L, uiohook::VC_V});
+          std::string check_str;
+          if (!clip::set_text(*choosen_text) || !clip::get_text(check_str))
+            std::cerr << "can't set text\n";
+          else
+            uiohook::click_keys({uiohook::VC_CONTROL_L, uiohook::VC_V});
         }
         action_flag = action_flag_t::PASS;
-        // uiohook::press_keys({uiohook::VC_YEN, uiohook::VC_V});
-        // }
       }
       if (!pressed_keys && action_flag == action_flag_t::PASTE_CONSOLE) {
-        clip::set_text(clipboard.contents.back());
-        uiohook::click_keys(
-            {uiohook::VC_CONTROL_L, uiohook::VC_SHIFT_L, uiohook::VC_V});
+        a.~lock_guard();
+        fm->show();
+        std::unique_lock b(zone_mutex);
+        choice_awaiter.wait(b);
+        if (choosen_text) {
+          std::string check_str;
+          if (!clip::set_text(*choosen_text) || !clip::get_text(check_str))
+            std::cerr << "can't set text\n";
+          else
+            uiohook::click_keys(
+                {uiohook::VC_CONTROL_L, uiohook::VC_SHIFT_L, uiohook::VC_V});
+        }
         action_flag = action_flag_t::PASS;
       }
       /*under construnction*/
@@ -363,8 +368,6 @@ void main_proc() {
         clip::get_text(board_val);
         clipboard.contents.push_back(board_val);
         lb->at(0).append({board_val});
-        // for (auto i : clipboard.contents)
-        //   std::cout << i << "\n";
         action_flag = action_flag_t::PASS;
       }
       // if (pressed_keys)
@@ -376,7 +379,6 @@ void main_proc() {
     }
   } while (main_loop);
   fm->close();
-  // config.key_masks.push_back(uiohook::VC_X);
   clipboard.save(config.buffer_path);
   config.save();
 }
@@ -391,9 +393,10 @@ int main(int argc, char **argv) {
   nana::form window{};
   fm.reset(&window);
   nana::listbox clipboard_view{window, true};
-  clipboard_view.append_header("Copied text");
+  clipboard_view.append_header("Copied text", 400);
+  clipboard_view.enable_single(1, 1);
+  clipboard_view.borderless(1);
   lb.reset(&clipboard_view);
-  // bool focused_on_window;
 
   auto future = std::async(std::launch::async, main_proc);
 
@@ -401,94 +404,65 @@ int main(int argc, char **argv) {
     if (main_loop)
       arg.cancel = true; // this line prevents the form from closing!
     choosen_text.release();
-    choice_awaiter.notify_one();
+    arg.stop_propagation();
     fm->hide();
+    int timeout = 0;
+    while (fm->visible() && timeout++ < 10000)
+      ;
+    if (timeout)
+      std::cerr << "Can't hide window\n";
+    timeout = 0;
+    choice_awaiter.notify_one();
   });
-  // window.events().focus([&focused_on_window](const nana::arg_focus &arg) {
-  //   focused_on_window = arg.getting;
-  // });
-  // window.events().focus([](const nana::arg_focus &arg) {
-  //   fm->caption("getting focus " + std::to_string(arg.getting)+"; flag
-  //   "+std::to_string((int)action_flag)); if (!arg.getting && action_flag ==
-  //   action_flag_t::PASTE) {
-  //     choosen_text.release();
-  //     choice_awaiter.notify_one();
-  //     fm->hide();
-  //   }
-  // });
-  // window.events().move([&focused_on_window] { focused_on_window = 1; });
-  // window.events().resizing([&focused_on_window] { focused_on_window = 1; });
-  // window.events().resized([&focused_on_window] { focused_on_window = 1; });
-  clipboard_view.events().dbl_click([] {
-    if (choosen_text)
-      choosen_text.release();
-    auto sel = lb->selected();
-    if (sel.size() > 0) {
-      choosen_text.reset(&clipboard.contents[sel[0].item]);
-      fm->hide();
+  window.events().expose([](nana::arg_expose const &arg) {
+    if (!arg.exposed)
       choice_awaiter.notify_one();
+    else {
+      auto sel = lb->selected();
+      if (sel.size() > 0)
+        lb->at(0).at(sel[0].item).select(0);
+      lb->focus();
     }
   });
-  // clipboard_view.events().focus(
-  //     [&focused_on_window](const nana::arg_focus &arg) {
-  //       fm->caption("getting focus " +
-  //                   std::to_string(arg.getting || focused_on_window) +
-  //                   "; flag " + std::to_string((int)action_flag));
-  //       /*if (!focused_on_window && !arg.getting && action_flag ==
-  //       action_flag_t::PASTE) { choosen_text.release();
-  //         choice_awaiter.notify_one();
-  //         fm->hide();
-  //       }*/
-  //     });
-  
+  clipboard_view.events().focus([](nana::arg_focus const &arg) {
+    if (!(arg.getting || lb->focused())) {
+      if (choosen_text)
+        choosen_text.release();
+      fm->hide();
+      int timeout = 0;
+      while (fm->visible() && timeout++ < 10000)
+        ;
+      if (timeout)
+        std::cerr << "Can't hide window\n";
+      timeout = 0;
+    }
+  });
+  clipboard_view.events().selected([](nana::arg_listbox const &arg) {
+    lb->focus();
+    if (!arg.item.selected())
+      return;
+    if (choosen_text)
+      choosen_text.release();
+    choosen_text.reset(&clipboard.contents[arg.item.pos().item]);
+    arg.stop_propagation();
+    fm->hide();
+    int timeout = 0;
+    while (fm->visible() && timeout++ < 10000)
+      ;
+    if (timeout)
+      std::cerr << "Can't hide window\n";
+    timeout = 0;
+  });
+
   window.caption("Clipboard log");
   window.size({600, 700});
   window.div("vert <><height=90% <><width=90% clipboard_view><>><>");
   window["clipboard_view"] << clipboard_view;
   window.collocate();
-  // window.show();
-  // window.hide();
 
   nana::exec();
   lb.release();
   fm.release();
   std::cout << "Form closed. (0)\n";
-  // auto timer = std::chrono::Timer<std::chrono::milliseconds>(500ms);
-
-  // uiohook::hook_run();
-
-  //----------------------------------------------------------------------
-  // click_keys({VC_CONTROL_L, VC_SHIFT_L, VC_V});
-  //----------------------------------------------------------------------
-  /*if (argc == 2)
-  {
-    Clipboard clipboard;
-    open_clipboard(clipboard);
-    //clip::text_format();
-
-    //xdo_t *x = xdo_new(NULL);
-    if (cmd_option_passed(args, config.opts.copy))
-    {
-      std::cout << clip::clear() << '\n';
-      click_keys({VC_CONTROL_L, VC_SHIFT_L, VC_C});
-      //xdo_send_keysequence_window(x, CURRENTWINDOW, "Ctrl+Shift+c", 200000);
-      std::string str;
-      auto res = clip::get_text(str);
-      std::cout << (res ? "success\n" : "error\n") << str;
-      if (res)
-        clipboard.contents.push_back(str);
-    }
-    if (cmd_option_passed(args, config.opts.paste))
-    {
-      std::cout << clipboard.contents.back() << "\n" <<
-  (clip::set_text(clipboard.contents.back()) ? "success" : "error");
-      click_keys({VC_CONTROL_L, VC_SHIFT_L, VC_V});
-      //xdo_send_keysequence_window(x, CURRENTWINDOW, "Ctrl+Shift+v", 200000);
-    }
-    if (cmd_option_passed(args, config.opts.paste_show))
-    {
-    }
-    save_clipboard(clipboard);
-  }*/
   return 0;
 }
