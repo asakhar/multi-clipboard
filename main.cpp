@@ -325,11 +325,10 @@ void main_proc() {
 
         uiohook::click_keys({uiohook::VC_CONTROL_L, uiohook::VC_Z});
 
-        fm->show();
         a.~lock_guard();
+        fm->show();
         std::unique_lock b(zone_mutex);
         choice_awaiter.wait(b);
-        // fm->hide();
         if (choosen_text) {
           clip::set_text(*choosen_text);
           uiohook::click_keys({uiohook::VC_CONTROL_L, uiohook::VC_V});
@@ -421,12 +420,13 @@ int main(int argc, char **argv) {
   // window.events().resizing([&focused_on_window] { focused_on_window = 1; });
   // window.events().resized([&focused_on_window] { focused_on_window = 1; });
   clipboard_view.events().dbl_click([] {
-    choosen_text.release();
+    if (choosen_text)
+      choosen_text.release();
     auto sel = lb->selected();
     if (sel.size() > 0) {
       choosen_text.reset(&clipboard.contents[sel[0].item]);
-      choice_awaiter.notify_one();
       fm->hide();
+      choice_awaiter.notify_one();
     }
   });
   // clipboard_view.events().focus(
