@@ -68,9 +68,17 @@ Multi-space clipboard
 ## Used libraries:
   - <a href="https://github.com/dacap/clip.git">clip</a>
     * [x] <a href="https://cmake.org/cmake/help/v3.11/module/FetchContent.html">FetchContent</a>
+    * Language C++
   - <a href="https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent.git">nlohmann json</a> 
     * [x] <a href="https://cmake.org/cmake/help/v3.11/module/FetchContent.html">FetchContent</a>
+    * Language C++
   - <a href="https://github.com/univrsal/libuiohook.git">uiohook</a> 
     * [x] <a href="https://cmake.org/cmake/help/v3.11/module/FetchContent.html">FetchContent</a>
+    * Language C
   - <a href="https://github.com/cnjinhao/nana.git">nana</a> 
     * [x] <a href="https://cmake.org/cmake/help/v3.11/module/FetchContent.html">FetchContent</a>
+    * Language C++
+  - <a>Threads</a> 
+    * [ ] FetchContent
+    * Language C++
+  - libs dependencies
