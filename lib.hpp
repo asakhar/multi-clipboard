@@ -20,7 +20,7 @@ extern "C" {
 namespace uiohook {
 #include <inttypes.h>
 #include <uiohook.h>
-// changing '#define' to 'constexpr' to suppress warnings and apply namespace
+// changing '#define' to 'constexpr' to remove warnings and apply namespace
 #include "hppuiohook.hpp"
 } // namespace uiohook
 }
@@ -56,13 +56,24 @@ struct Config {
   int max_entries{10};
   // Masks for keys to be used as hotkeys
   // Mask is determined as 2^position in vector
-  std::vector<uint16_t> key_masks{uiohook::VC_YEN /*1*/,
-                                  uiohook::VC_CONTROL_L /*2*/,
-                                  uiohook::VC_SHIFT_L /*4*/,
-                                  uiohook::VC_ALT_L /*8*/,
-                                  uiohook::VC_C /*16*/,
-                                  uiohook::VC_V /*32*/,
-                                  uiohook::VC_X /*64*/};
+
+  // std::vector<uint16_t> key_masks{uiohook::VC_YEN /*1*/,
+  //                                 uiohook::VC_CONTROL_L /*2*/,
+  //                                 uiohook::VC_SHIFT_L /*4*/,
+  //                                 uiohook::VC_ALT_L /*8*/,
+  //                                 uiohook::VC_C /*16*/,
+  //                                 uiohook::VC_V /*32*/,
+  //                                 uiohook::VC_X /*64*/};
+//private:
+  std::map<uint16_t, uint64_t> key_masks{
+      {uiohook::VC_YEN, 1},     {uiohook::VC_CONTROL_L, 2},
+      {uiohook::VC_SHIFT_L, 4}, {uiohook::VC_ALT_L, 8},
+      {uiohook::VC_C, 16},      {uiohook::VC_V, 32},
+      {uiohook::VC_X, 64}};
+
+public:
+  // Access to elements of key_masks
+  uint64_t &operator[](uint16_t const &key);
   // Load config
   void open();
   // Save config
@@ -79,6 +90,8 @@ struct Clipboard {
   void save(std::string const &path);
   // Load clipboard from file @path
   void open(std::string const &path);
+  // Get element by @index
+  std::string &operator[](size_t const &index);
 };
 
 namespace std {
@@ -86,7 +99,7 @@ namespace chrono {
 // Unused
 template <typename _Duration> struct Timer {
   high_resolution_clock _clock;
-  _V2::system_clock::time_point _start; // milli
+  _V2::system_clock::time_point _start;
   _Duration _delay;
 
   template <typename _P>
@@ -108,7 +121,7 @@ namespace uiohook {
 extern void press_keys(std::vector<uint16_t> const &keys);
 // Fake @keys release events one by one
 extern void release_keys(std::vector<uint16_t> const &keys);
-// Fake press and then release @keys events 
+// Fake press and then release @keys events
 extern void click_keys(std::vector<uint16_t> const &keys);
 // Compare @first event with @second
 extern bool operator==(uiohook_event const &first, uiohook_event const &second);
@@ -121,7 +134,9 @@ extern void dispatch_proc(uiohook_event *const event);
 extern void from_json(nlohmann::json const &json, Clipboard &object);
 // Load Config @object from @json
 extern void from_json(nlohmann::json const &json, Config &object);
-
+// Load Map<UShort, ULong> @map from @json
+extern void from_json(nlohmann::json const &json,
+                      std::map<uint16_t, uint64_t> &map);
 // Mute default logger
 extern bool logger(unsigned int level, const char *format, ...);
 
@@ -150,8 +165,8 @@ extern Config config;
 extern Clipboard clipboard;
 // Form pointer
 // There is no need to use smart poiner but U asked for it so...
-extern std::unique_ptr<nana::form> fm;
+extern nana::form *fm;
 // Listbox pointer
-extern std::unique_ptr<nana::listbox> lb;
+extern nana::listbox *lb;
 // Selected text pointer
-extern std::unique_ptr<std::string> selected_text;
+extern std::string *selected_text;

@@ -6,7 +6,7 @@
 
 namespace argparse {
 // Stores arguments (e.g. command line args)
-struct Args {
+class Args {
   // Container
   std::vector<std::string> argv;
 
