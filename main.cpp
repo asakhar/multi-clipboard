@@ -50,12 +50,10 @@ void main_proc() {
   auto future = std::async(std::launch::async, uiohook::hook_run);
   do {
     {
-      std::lock_guard a(zone_mutex);
       if (!pressed_keys && action_flag == action_flag_t::PASTE) {
-        a.~lock_guard();
+        std::unique_lock a(zone_mutex);
         fm->show();
-        std::unique_lock b(zone_mutex);
-        choice_awaiter.wait(b);
+        choice_awaiter.wait(a);
         if (selected_text) {
           std::string check_str;
           if (!clip::set_text(*selected_text) || !clip::get_text(check_str))
@@ -65,10 +63,9 @@ void main_proc() {
         }
       }
       if (!pressed_keys && action_flag == action_flag_t::PASTE_CONSOLE) {
-        a.~lock_guard();
+        std::unique_lock a(zone_mutex);
         fm->show();
-        std::unique_lock b(zone_mutex);
-        choice_awaiter.wait(b);
+        choice_awaiter.wait(a);
         if (selected_text) {
           std::string check_str;
           if (!clip::set_text(*selected_text) || !clip::get_text(check_str))
@@ -109,8 +106,10 @@ void main_proc() {
 #endif
       if (!pressed_keys)
         action_flag = action_flag_t::PASS;
+      zone_mutex.lock();
       if (!main_loop)
         std::cout << "Thread stopped. (" << future.get() << ")\n";
+      zone_mutex.unlock();
     }
   } while (main_loop);
   fm->close();
