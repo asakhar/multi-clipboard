@@ -1,8 +1,5 @@
 #include "lib.hpp"
 
-#ifndef UIOHOOK_SUB_APPLICATION
-#define UIOHOOK_SUB_APPLICATION
-
 mask_t pressed_keys = 0;
 action_flag_t action_flag = action_flag_t::PASS;
 bool main_loop = true;
@@ -13,9 +10,9 @@ std::queue<uiohook::uiohook_event> ignore_events;
 
 Config config;
 Clipboard clipboard;
-std::unique_ptr<nana::form> fm;
-std::unique_ptr<nana::listbox> lb;
-std::unique_ptr<std::string> selected_text;
+nana::form *fm;
+nana::listbox *lb;
+std::string *selected_text;
 
 namespace uiohook {
 void press_keys(std::vector<uint16_t> const &keys) {
@@ -61,19 +58,18 @@ void dispatch_proc(uiohook_event *const event) {
   if (event->type == EVENT_HOOK_DISABLED)
     return;
   std::lock_guard<std::mutex> a(zone_mutex);
-  if (ignore_events.size() > 0 && *event == ignore_events.front()) {
-    ignore_events.pop();
-    return;
-  }
+  if (ignore_events.size() > 0 && *event == ignore_events.front()) 
+    return ignore_events.pop();
   switch (event->type) {
   case EVENT_KEY_PRESSED:
-    #ifdef DEBUG
+#ifdef DEBUG
     std::cout << "pressed key code: (" << event->data.keyboard.keycode << ")\n";
-    #endif
+#endif
     // Check all keys from config.key_masks & apply mask
-    for (uint16_t i = 0; i < config.key_masks.size(); ++i)
-      if (event->data.keyboard.keycode == config.key_masks[i])
-        pressed_keys |= 1 << i;
+    // for (uint16_t i = 0; i < config.key_masks.size(); ++i)
+    //   if (event->data.keyboard.keycode == config.key_masks[i])
+    //     pressed_keys |= 1 << i;
+    pressed_keys |= config[event->data.keyboard.keycode];
 
     // If the escape key is pressed, stop hook process, join threads & escape
     // main loop
@@ -107,9 +103,14 @@ void dispatch_proc(uiohook_event *const event) {
     }
     break;
   case EVENT_KEY_RELEASED:
-    for (uint16_t i = 0; i < config.key_masks.size(); ++i)
-      if (event->data.keyboard.keycode == config.key_masks[i])
-        pressed_keys &= ~(1 << i);
+    pressed_keys &= ~(config[event->data.keyboard.keycode]);
+    if (event->data.keyboard.keycode == VC_ENTER && fm->visible() &&
+        lb->at(0).size() > 0) // {
+                              // if(lb->selected().size() == 0)
+      lb->at(0).at(lb->at(0).size() - 1).select(1);
+    //   else
+    //     lb->at(0).at(lb->selected().at(0).item).select(1);
+    // }
   default:
     break;
   }
@@ -125,17 +126,16 @@ void dispatch_proc(uiohook_event *const event) {
     action_flag = action_flag_t::CUT_CONSOLE;
 }
 } // namespace uiohook
-#endif
 
-#ifndef JSON2CLIPBOARD
-#define JSON2CLIPBOARD
 void from_json(nlohmann::json const &j, Clipboard &cb) {
   cb.contents = j.get<std::vector<std::string>>();
 }
-#endif
 
-#ifndef JSON2CONFIG
-#define JSON2CONFIG
+void from_json(nlohmann::json const &j, std::map<uint16_t, uint64_t> &map) {
+  for(auto item : j.items()) 
+    map.insert_or_assign(std::stoi(item.key()), item.value().get<uint64_t>());
+}
+
 void from_json(nlohmann::json const &j, Config &config) {
   if (!j.is_object())
     std::cerr << "invalid configuration\n";
@@ -146,12 +146,9 @@ void from_json(nlohmann::json const &j, Config &config) {
   if (j.contains("max_entries"))
     j.at("max_entries").get_to(config.max_entries);
   if (j.contains("masks"))
-    config.key_masks = j.at("masks").get<std::vector<uint16_t>>();
+    config.key_masks = j.at("masks").get<std::map<uint16_t, uint64_t>>();
 }
-#endif
 
-#ifndef CLIPBOARD_C
-#define CLIPBOARD_C
 void Clipboard::save(std::string const &path) {
   nlohmann::json clipboard_json;
   clipboard_json = contents;
@@ -172,10 +169,15 @@ void Clipboard::open(std::string const &path) {
   clipboard_json = nlohmann::json::parse(clipboard_f);
   *this = clipboard_json.get<Clipboard>();
 }
-#endif
 
-#ifndef CONFIG_C
-#define CONFIG_C
+uint64_t &Config::operator[](uint16_t const &key) {
+  return key_masks[key];
+}
+
+std::string &Clipboard::operator[] (size_t const &idx) {
+  return contents[idx];
+}
+
 void Config::open() {
   std::fstream config_f(config_path, std::ios_base::in);
   if (config_f.eof() || !config_f.is_open()) {
@@ -199,7 +201,6 @@ void Config::save() {
   clipboard_f << clipboard_json;
   clipboard_f.close();
 }
-#endif
 
 bool logger(unsigned int, const char *, ...) { return true; }
 

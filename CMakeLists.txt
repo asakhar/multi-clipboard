@@ -59,13 +59,15 @@ if(NOT uiohook_POPULATED)
 endif()
 
 FetchContent_Declare(
-  nana
+  nana_lib
   GIT_REPOSITORY https://github.com/cnjinhao/nana.git
-  GIT_TAG origin/master)
-FetchContent_GetProperties(nana)
-if(NOT nana_POPULATED)
-  FetchContent_Populate(nana)
-  add_subdirectory(${nana_SOURCE_DIR} ${nana_BINARY_DIR} EXCLUDE_FROM_ALL)
+  GIT_TAG v1.7.3 # origin/master
+)
+FetchContent_GetProperties(nana_lib)
+if(NOT nana_lib_POPULATED)
+  FetchContent_Populate(nana_lib)
+  add_subdirectory(${nana_lib_SOURCE_DIR} ${nana_lib_BINARY_DIR}
+                   EXCLUDE_FROM_ALL)
 endif()
 
 add_executable(multi-clipboard main.cpp hppuiohook.hpp lib.cpp argparse.cpp)
@@ -75,7 +77,7 @@ target_link_libraries(
   PRIVATE nlohmann_json::nlohmann_json
   PRIVATE clip
   PRIVATE uiohook
-  PUBLIC nana::nana)
+  PRIVATE nana::nana)
 
 # set(CPACK_PROJECT_NAME ${PROJECT_NAME}) set(CPACK_PROJECT_VERSION
 # ${PROJECT_VERSION}) include(CPack)

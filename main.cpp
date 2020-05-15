@@ -19,23 +19,25 @@
 
 // using namespace std::chrono_literals;
 
-/*
-void perform_paste(std::lock_guard<std::mutex> const &lock,
-                   std::vector<uint16_t> const &keys_to_press) {
-  lock.~lock_guard();
-  fm->show();
-  std::unique_lock b(zone_mutex);
-  choice_awaiter.wait(b);
-  if (selected_text) {
-    std::string check_str;
-    if (!clip::set_text(*selected_text) || !clip::get_text(check_str))
-      std::cerr << "can't set text\n";
-    else
-      uiohook::click_keys(keys_to_press);
-  }
-}
-*/
+// void perform_paste(std::lock_guard<std::mutex> const &lock,
+//                    std::vector<uint16_t> const &keys_to_press) {
+//   lock.~lock_guard();
+//   fm->show();
+//   std::unique_lock b(zone_mutex);
+//   choice_awaiter.wait(b);
+//   if (selected_text) {
+//     std::string check_str;
+//     if (!clip::set_text(*selected_text) || !clip::get_text(check_str))
+//       std::cerr << "can't set text\n";
+//     else
+//       uiohook::click_keys(keys_to_press);
+//   }
+// }
 
+// Main loop
+// loads clipboard to Listbox;
+// starts hook process async;
+// checks for actions flags & performs feedback
 void main_proc() {
   clipboard.open(config.buffer_path);
 
@@ -116,6 +118,10 @@ void main_proc() {
   config.save();
 }
 
+// Entry point
+// loads config & clipboard
+// starts main loop
+// creates display form
 int main(int argc, char *argv[]) {
   config.open();
   argparse::Args args{argc, argv};
@@ -123,19 +129,19 @@ int main(int argc, char *argv[]) {
   if (args.option_check("--help", "-h"))
     std::cout << "help\n"; // TODO: write help
   nana::form window{};
-  fm.reset(&window);
+  fm = &window;
   nana::listbox clipboard_view{window, true};
   clipboard_view.append_header("Copied text", 600);
   clipboard_view.enable_single(1, 1);
   clipboard_view.borderless(1);
-  lb.reset(&clipboard_view);
+  lb = &clipboard_view;
 
   auto future = std::async(std::launch::async, main_proc);
 
   window.events().unload([](const nana::arg_unload &arg) {
     if (main_loop)
       arg.cancel = true; // this line prevents the form from closing!
-    selected_text.release();
+    selected_text = 0;
     arg.stop_propagation();
     fm->hide();
     int timeout = 0;
@@ -159,7 +165,7 @@ int main(int argc, char *argv[]) {
   clipboard_view.events().focus([](nana::arg_focus const &arg) {
     if (!(arg.getting || lb->focused())) {
       if (selected_text)
-        selected_text.release();
+        selected_text = 0;
       fm->hide();
       int timeout = 0;
       while (fm->visible() && timeout++ < 10000)
@@ -174,8 +180,8 @@ int main(int argc, char *argv[]) {
     if (!arg.item.selected())
       return;
     if (selected_text)
-      selected_text.release();
-    selected_text.reset(&clipboard.contents[arg.item.pos().item]);
+      selected_text = 0;
+    selected_text = &clipboard.contents[arg.item.pos().item];
     arg.stop_propagation();
     fm->hide();
     int timeout = 0;
@@ -185,7 +191,6 @@ int main(int argc, char *argv[]) {
       std::cerr << "Can't hide window\n";
     timeout = 0;
   });
-
   window.caption("Clipboard log");
   window.size({600, 700});
   window.div("vert <><height=90% <><width=90% clipboard_view><>><>");
@@ -193,9 +198,6 @@ int main(int argc, char *argv[]) {
   window.collocate();
 
   nana::exec();
-  // Release pointers pointed to local objects
-  lb.release();
-  fm.release();
   std::cout << "Form closed. (0)\n";
   return 0;
 }
