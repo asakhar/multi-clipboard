@@ -100,13 +100,13 @@ void main_proc() {
         clipboard.contents.push_back(board_val);
         lb->at(0).append({process_string_to_view(board_val)});
       }
+      zone_mutex.lock();
 #ifdef DEBUG
       if (pressed_keys)
         std::cout << "keys " << std::hex << pressed_keys << "\n";
 #endif
       if (!pressed_keys)
         action_flag = action_flag_t::PASS;
-      zone_mutex.lock();
       if (!main_loop)
         std::cout << "Thread stopped. (" << future.get() << ")\n";
       zone_mutex.unlock();
