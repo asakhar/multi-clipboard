@@ -57,7 +57,7 @@ void dispatch_proc(uiohook_event *const event) {
   // Ignoring this event to prevent it
   if (event->type == EVENT_HOOK_DISABLED)
     return;
-  std::lock_guard<std::mutex> a(zone_mutex);
+  std::unique_lock a{zone_mutex};
   if (ignore_events.size() > 0 && *event == ignore_events.front()) 
     return ignore_events.pop();
   switch (event->type) {

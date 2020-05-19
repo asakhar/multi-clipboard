@@ -1,5 +1,6 @@
 #include "argparse.hpp"
 #include "lib.hpp"
+
 // template <typename _Fy, typename... _Ty> struct Bind {
 //   std::tuple<_Ty&&...> args;
 //   _Fy &&func;
@@ -34,46 +35,43 @@
 //   }
 // }
 
+bool console_paste = 0;
+bool paste_flag = 0;
+
+void perform_paste() {
+  if (selected_text) {
+    std::string check_str;
+    if (!clip::set_text(*selected_text) || !clip::get_text(check_str))
+      std::cerr << "can't set text\n";
+    else {
+      if (console_paste)
+        uiohook::click_keys(
+            {uiohook::VC_CONTROL_L, uiohook::VC_SHIFT_L, uiohook::VC_V});
+      else
+        uiohook::click_keys({uiohook::VC_CONTROL_L, uiohook::VC_V});
+    }
+  }
+}
+
 // Main loop
 // loads clipboard to Listbox;
 // starts hook process async;
 // checks for actions flags & performs feedback
 void main_proc() {
-  clipboard.open(config.buffer_path);
-
-  uiohook::hook_set_logger_proc(&logger);
-  uiohook::hook_set_dispatch_proc(&uiohook::dispatch_proc);
-  while (clipboard.contents.size() > config.max_entries)
-    clipboard.contents.erase(clipboard.contents.begin());
-  for (auto i : clipboard.contents)
-    lb->at(0).append({process_string_to_view(i)});
-  auto future = std::async(std::launch::async, uiohook::hook_run);
   do {
     {
+      std::unique_lock a(zone_mutex);
+      if (paste_flag) {
+        perform_paste();
+        paste_flag = 0;
+      }
       if (!pressed_keys && action_flag == action_flag_t::PASTE) {
-        std::unique_lock a(zone_mutex);
         fm->show();
-        choice_awaiter.wait(a);
-        if (selected_text) {
-          std::string check_str;
-          if (!clip::set_text(*selected_text) || !clip::get_text(check_str))
-            std::cerr << "can't set text\n";
-          else
-            uiohook::click_keys({uiohook::VC_CONTROL_L, uiohook::VC_V});
-        }
+        console_paste = 0;
       }
       if (!pressed_keys && action_flag == action_flag_t::PASTE_CONSOLE) {
-        std::unique_lock a(zone_mutex);
         fm->show();
-        choice_awaiter.wait(a);
-        if (selected_text) {
-          std::string check_str;
-          if (!clip::set_text(*selected_text) || !clip::get_text(check_str))
-            std::cerr << "can't set text\n";
-          else
-            uiohook::click_keys(
-                {uiohook::VC_CONTROL_L, uiohook::VC_SHIFT_L, uiohook::VC_V});
-        }
+        console_paste = 1;
       }
       /*under construnction*/
       /*if (!pressed_keys && action_flag == action_flag_t::CUT_CONSOLE) {
@@ -106,15 +104,10 @@ void main_proc() {
 #endif
       if (!pressed_keys)
         action_flag = action_flag_t::PASS;
-      zone_mutex.lock();
-      if (!main_loop)
-        std::cout << "Thread stopped. (" << future.get() << ")\n";
-      zone_mutex.unlock();
     }
-  } while (main_loop);
-  fm->close();
-  clipboard.save(config.buffer_path);
-  config.save();
+  } while (main_loop && !fm->visible());
+  if (!main_loop)
+    fm->close();
 }
 
 // Entry point
@@ -123,6 +116,7 @@ void main_proc() {
 // creates display form
 int main(int argc, char *argv[]) {
   config.open();
+  clipboard.open(config.buffer_path);
   argparse::Args args{argc, argv};
 
   if (args.option_check("--help", "-h"))
@@ -135,7 +129,7 @@ int main(int argc, char *argv[]) {
   clipboard_view.borderless(1);
   lb = &clipboard_view;
 
-  auto future = std::async(std::launch::async, main_proc);
+  // auto future = std::async(std::launch::async, main_proc);
 
   window.events().unload([](const nana::arg_unload &arg) {
     if (main_loop)
@@ -143,18 +137,11 @@ int main(int argc, char *argv[]) {
     selected_text = 0;
     arg.stop_propagation();
     fm->hide();
-    int timeout = 0;
-    while (fm->visible() && timeout++ < 10000)
-      ;
-    if (timeout)
-      std::cerr << "Can't hide window\n";
-    timeout = 0;
-    choice_awaiter.notify_one();
   });
   window.events().expose([](nana::arg_expose const &arg) {
-    if (!arg.exposed)
-      choice_awaiter.notify_one();
-    else {
+    if (!arg.exposed) {
+      main_proc();
+    } else {
       auto sel = lb->selected();
       if (sel.size() > 0)
         lb->at(0).at(sel[0].item).select(0);
@@ -166,12 +153,6 @@ int main(int argc, char *argv[]) {
       if (selected_text)
         selected_text = 0;
       fm->hide();
-      int timeout = 0;
-      while (fm->visible() && timeout++ < 10000)
-        ;
-      if (timeout)
-        std::cerr << "Can't hide window\n";
-      timeout = 0;
     }
   });
   clipboard_view.events().selected([](nana::arg_listbox const &arg) {
@@ -181,22 +162,30 @@ int main(int argc, char *argv[]) {
     if (selected_text)
       selected_text = 0;
     selected_text = &clipboard.contents[arg.item.pos().item];
+    paste_flag = 1;
     arg.stop_propagation();
     fm->hide();
-    int timeout = 0;
-    while (fm->visible() && timeout++ < 10000)
-      ;
-    if (timeout)
-      std::cerr << "Can't hide window\n";
-    timeout = 0;
   });
+
+  uiohook::hook_set_logger_proc(&logger);
+  uiohook::hook_set_dispatch_proc(&uiohook::dispatch_proc);
+  while (clipboard.contents.size() > config.max_entries)
+    clipboard.contents.erase(clipboard.contents.begin());
+  for (auto i : clipboard.contents)
+    lb->at(0).append({process_string_to_view(i)});
+  auto future = std::async(std::launch::async, uiohook::hook_run);
+
   window.caption("Clipboard log");
   window.size({600, 700});
   window.div("vert <><height=90% <><width=90% clipboard_view><>><>");
   window["clipboard_view"] << clipboard_view;
   window.collocate();
 
+  main_proc();
+
   nana::exec();
+  clipboard.save(config.buffer_path);
+  config.save();
   std::cout << "Form closed. (0)\n";
   return 0;
 }

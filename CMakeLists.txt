@@ -5,7 +5,9 @@ include(CTest)
 include(cmake/CheckGetRepos.cmake)
 include(CheckIncludeFileCXX)
 
-enable_testing()
+# set_project_warnings(default)
+
+# enable_testing()
 
 add_library(default INTERFACE)
 target_compile_features(default INTERFACE cxx_std_17)
@@ -16,8 +18,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
                       "${CMAKE_SOURCE_DIR}/build/_deps/uiohook-src/cmake/; ")
 
 check_get_repos(
-  json https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent.git
-  v3.7.3)
+  nlohmann_json
+  https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent.git v3.7.3)
 
 check_get_repos(clip https://github.com/dacap/clip.git origin/master)
 # Disable clip examples and tests
@@ -29,18 +31,12 @@ set(CLIP_TESTS
     CACHE BOOL "Compile clip tests")
 target_include_directories(clip INTERFACE ${clip_SOURCE_DIR})
 
-check_get_repos(uiohook https://github.com/univrsal/libuiohook.git origin/cmake)
+check_get_repos(libuiohook https://github.com/univrsal/libuiohook.git
+                origin/cmake)
 
-check_get_repos(nana_lib https://github.com/cnjinhao/nana.git v1.7.3)
+check_get_repos(nana https://github.com/cnjinhao/nana.git v1.7.3)
 
-add_executable(multi-clipboard main.cpp hppuiohook.hpp lib.cpp argparse.cpp)
-target_link_libraries(
-  multi-clipboard
-  PUBLIC default
-  PRIVATE nlohmann_json::nlohmann_json
-  PRIVATE clip
-  PRIVATE uiohook
-  PRIVATE nana::nana)
+add_subdirectory(src)
 
 # set(CPACK_PROJECT_NAME ${PROJECT_NAME}) set(CPACK_PROJECT_VERSION
 # ${PROJECT_VERSION}) include(CPack)
