@@ -5,6 +5,7 @@ dist: bionic
 os:
   - linux
 before_install:
+  - sudo apt-get -y install pkg-config
   - sudo apt-get -y install libx11-dev
   - sudo apt-get -y install libxcb1-dev
   - sudo apt-get -y install libxkbfile-dev
