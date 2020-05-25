@@ -9,6 +9,7 @@ before_install:
   - sudo apt-get -y install libxcb1-dev
   - sudo apt-get -y install libxkbfile-dev
   - sudo apt-get -y install libxkbcommon-dev
+  - sudo apt-get -y install libpthread-stubs0-dev
 script:
   - mkdir -p build
   - cd build
