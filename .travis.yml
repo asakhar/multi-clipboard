@@ -1,0 +1,11 @@
+language: cpp
+compiler:
+  - clang
+dist: bionic
+os:
+  - linux
+script:
+  - mkdir -p build
+  - cd build
+  - cmake ..
+  - cmake --build .
