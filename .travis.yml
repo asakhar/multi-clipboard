@@ -16,5 +16,3 @@ script:
   - cd build
   - cmake ..
   - cmake --build .
-  - cat /home/travis/build/asakhar/multi-clipboard/build/CMakeFiles/CMakeError.log
-  - cat /home/travis/build/asakhar/multi-clipboard/build/CMakeFiles/CMakeOutput.log
