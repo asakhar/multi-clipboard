@@ -4,11 +4,12 @@ compiler:
 dist: bionic
 os:
   - linux
-script:
+before_install:
   - sudo apt-get -y install libx11-dev
   - sudo apt-get -y install libxcb1-dev
   - sudo apt-get -y install libxkbfile-dev
   - sudo apt-get -y install libxkbcommon-dev
+script:
   - mkdir -p build
   - cd build
   - cmake ..
