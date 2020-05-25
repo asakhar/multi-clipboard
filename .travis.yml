@@ -11,6 +11,9 @@ before_install:
   - sudo apt-get install libxkbfile-dev
   - sudo apt-get install libxkbcommon-dev
   - sudo apt-get install libxkbcommon-x11-dev
+  - sudo apt-get install libx11-xcb1
+  - sudo apt-get install libxkbfile1
+  - sudo apt-get install libxss1
 script:
   - mkdir -p build
   - cd build
