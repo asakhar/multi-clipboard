@@ -4,6 +4,8 @@ compiler:
 dist: bionic
 os:
   - linux
+before_install:
+  - sudo apt-get -y install libxkbfile-dev
 script:
   - mkdir -p build
   - cd build
