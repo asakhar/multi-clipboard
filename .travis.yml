@@ -5,7 +5,9 @@ dist: bionic
 os:
   - linux
 before_install:
+  - sudo apt-get -y install libx11-dev
   - sudo apt-get -y install libxkbfile-dev
+  - sudo apt-get -y install libxkb-dev
 script:
   - mkdir -p build
   - cd build
