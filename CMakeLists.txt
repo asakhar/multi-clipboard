@@ -16,6 +16,8 @@ find_package(Threads)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
                       "${CMAKE_SOURCE_DIR}/build/_deps/libuiohook-src/cmake/; ")
+set(NANA_CMAKE_NANA_FILESYSTEM_FORCE ON)
+set(NANA_CMAKE_FIND_BOOST_FILESYSTEM OFF)
 
 check_get_repos(
   nlohmann_json
