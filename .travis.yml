@@ -4,14 +4,14 @@ addons:
     - cmake
     - libxrandr-dev
     - libudev-dev
-    - g++
+    - g++-8
     - libgl1-mesa-dev
-    - clang-3.8
+
   sources: 
     - ubuntu-toolchain-r-test
     - llvm-toolchain-precise
 compiler:
-  - clang
+  - g++
 dist: bionic
 os:
   - linux
