@@ -6,8 +6,12 @@ addons:
     - libudev-dev
     - g++
     - libgl1-mesa-dev
+    - clang-3.8
+  sources: 
+    - ubuntu-toolchain-r-test
+    - llvm-toolchain-precise
 compiler:
-  - clang-10
+  - clang
 dist: bionic
 os:
   - linux
