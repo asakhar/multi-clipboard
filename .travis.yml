@@ -13,6 +13,7 @@ dist: bionic
 os:
   - linux
 before_install:
+  - sudo apt install cmake=3.16.3-1ubuntu1
   - sudo apt-get install pkg-config
   - sudo apt-get install libx11-dev
   - sudo apt-get install libxcb1-dev
