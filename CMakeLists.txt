@@ -15,7 +15,7 @@ target_compile_features(default INTERFACE cxx_std_17)
 find_package(Threads)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-                      "${CMAKE_SOURCE_DIR}/build/_deps/uiohook-src/cmake/; ")
+                      "${CMAKE_SOURCE_DIR}/build/_deps/libuiohook-src/cmake/; ")
 
 check_get_repos(
   nlohmann_json
