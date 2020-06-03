@@ -36,9 +36,9 @@ set(X11_xkbfile_FOUND ${X11_Xkbfile_FOUND})
 set(X11_xkbfile_INCLUDE_PATH ${X11_Xkbfile_INCLUDE_PATH})
 set(X11_xkbfile_LIB ${X11_Xkbfile_LIB})
 
-set(X11_Xtst_FOUND ${X11_XTest_FOUND})
-set(X11_Xtst_INCLUDE_PATH ${X11_XTest_INCLUDE_PATH})
-set(X11_Xtst_LIB ${X11_XTest_LIB})
+# set(X11_Xtst_FOUND ${X11_XTest_FOUND})
+# set(X11_Xtst_INCLUDE_PATH ${X11_XTest_INCLUDE_PATH})
+# set(X11_Xtst_LIB ${X11_XTest_LIB})
 
 check_get_repos(libuiohook https://github.com/univrsal/libuiohook.git
                 origin/cmake)
