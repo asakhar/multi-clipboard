@@ -16,7 +16,6 @@ before_install:
   - sudo add-apt-repository universe
   - sudo add-apt-repository restricted
   - sudo add-apt-repository multiverse
-  - sudo apt install clang-10
   - version=3.17
   - build=3-Linux-x86_64
   - mkdir ~/temp
