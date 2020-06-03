@@ -1,4 +1,4 @@
-# Multi-clipboard
+# Multi-clipboard [![Build Status](https://travis-ci.com/asakhar/multi-clipboard.svg?branch=master-fixed)](https://travis-ci.com/asakhar/multi-clipboard)
 Multi-space clipboard
 
 ## Files:
