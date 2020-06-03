@@ -31,6 +31,11 @@ set(CLIP_TESTS
     CACHE BOOL "Compile clip tests")
 target_include_directories(clip INTERFACE ${clip_SOURCE_DIR})
 
+find_package(X11)
+set(X11_xkbfile_FOUND ${X11_Xkbfile_FOUND})
+set(X11_xkbfile_INCLUDE_PATH ${X11_Xkbfile_INCLUDE_PATH})
+set(X11_xkbfile_LIB ${X11_Xkbfile_LIB})
+
 check_get_repos(libuiohook https://github.com/univrsal/libuiohook.git
                 origin/cmake)
 
