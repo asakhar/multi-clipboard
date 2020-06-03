@@ -2,7 +2,6 @@ language: cpp
 addons:
   apt_packages:
     - cmake
-    - clang-10
     - libxrandr-dev
     - libudev-dev
     - g++
@@ -13,6 +12,7 @@ dist: bionic
 os:
   - linux
 before_install:
+  - sudo apt install clang-10
   - version=3.17
   - build=3-Linux-x86_64
   - mkdir ~/temp
