@@ -24,8 +24,8 @@ before_install:
   - sudo apt-get install libxss1
 
 script:
-  - chmod +x setup.sh
-  - ./setup.sh
+
+
   - mkdir -p build
   - cd build
   - cmake ..
