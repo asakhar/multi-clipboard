@@ -16,9 +16,10 @@ before_install:
   - version=3.17
   - build=3-Linux-x86_64
   - mkdir ~/temp
-  - cd ~/temp
+  - cd temp
   - wget https://cmake.org/files/v$version/cmake-$version.$build.tar.gz
   - tar -xzvf cmake-$version.$build.tar.gz
+  - cd ..
   - sudo apt-get install pkg-config
   - sudo apt-get install libx11-dev
   - sudo apt-get install libxcb1-dev
