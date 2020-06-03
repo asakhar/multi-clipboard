@@ -14,7 +14,7 @@ os:
   - linux
 before_install:
   - version=3.17
-  - build=33-Linux-x86_64
+  - build=3-Linux-x86_64
   - mkdir ~/temp
   - cd ~/temp
   - wget https://cmake.org/files/v$version/cmake-$version.$build.tar.gz
