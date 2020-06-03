@@ -6,6 +6,7 @@ addons:
     - libudev-dev
     - g++-8
     - libgl1-mesa-dev
+    - libxcursor-dev
 
   sources: 
     - ubuntu-toolchain-r-test
