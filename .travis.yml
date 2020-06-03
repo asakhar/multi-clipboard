@@ -2,13 +2,13 @@ language: cpp
 addons:
   apt_packages:
     - cmake
+    - clang-10
     - libxrandr-dev
     - libudev-dev
     - g++
-    - clang
     - libgl1-mesa-dev
 compiler:
-  - clang
+  - clang-10
 dist: bionic
 os:
   - linux
