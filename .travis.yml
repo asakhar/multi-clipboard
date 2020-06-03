@@ -22,7 +22,9 @@ before_install:
   - sudo apt-get install libx11-xcb1
   - sudo apt-get install libxkbfile1
   - sudo apt-get install libxss1
+
 script:
+  - sudo ./setup.sh
   - mkdir -p build
   - cd build
   - cmake ..
