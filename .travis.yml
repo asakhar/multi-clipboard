@@ -22,7 +22,7 @@ before_install:
   - sudo apt-get install libx11-xcb1
   - sudo apt-get install libxkbfile1
   - sudo apt-get install libxss1
-  - sudo apt-get install libxtst6-dev
+  - sudo apt-get install libxtst-dev
 
 script:
 
