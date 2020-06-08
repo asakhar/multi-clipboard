@@ -5,6 +5,8 @@ include(CTest)
 include(cmake/CheckGetRepos.cmake)
 include(CheckIncludeFileCXX)
 
+set(DEBUG)
+
 # set_project_warnings(default)
 
 # enable_testing()
