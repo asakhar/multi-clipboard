@@ -16,7 +16,9 @@ target_compile_features(default INTERFACE cxx_std_17)
 find_package(Threads)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-                      "${CMAKE_SOURCE_DIR}/build/_deps/uiohook-src/cmake/; ")
+                      "${CMAKE_SOURCE_DIR}/build/_deps/libuiohook-src/cmake/; ")
+
+set(NANA_CMAKE_FIND_BOOST_FILESYSTEM OFF)
 
 check_get_repos(
   nlohmann_json
@@ -31,6 +33,15 @@ set(CLIP_TESTS
     OFF
     CACHE BOOL "Compile clip tests")
 target_include_directories(clip INTERFACE ${clip_SOURCE_DIR})
+
+# find_package(X11)
+# set(X11_xkbfile_FOUND ${X11_Xkbfile_FOUND})
+# set(X11_xkbfile_INCLUDE_PATH ${X11_Xkbfile_INCLUDE_PATH})
+# set(X11_xkbfile_LIB ${X11_Xkbfile_LIB})
+
+# set(X11_Xtst_FOUND ${X11_XTest_FOUND})
+# set(X11_Xtst_INCLUDE_PATH ${X11_XTest_INCLUDE_PATH})
+# set(X11_Xtst_LIB ${X11_XTest_LIB})
 
 check_get_repos(libuiohook https://github.com/univrsal/libuiohook.git
                 origin/cmake)
