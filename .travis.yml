@@ -4,18 +4,18 @@ compiler:
 dist: bionic
 os:
   - linux
-before_install:
-  - sudo apt-get install pkg-config
-  - sudo apt-get install libx11-dev
-  - sudo apt-get install libxcb1-dev
-  - sudo apt-get install libxkbfile-dev
-  - sudo apt-get install libxkbcommon-dev
-  - sudo apt-get install libxkbcommon-x11-dev
-  - sudo apt-get install libx11-xcb1
-  - sudo apt-get install libxkbfile1
-  - sudo apt-get install libxss1
+# before_install:
+  # - sudo apt-get install libx11-dev
+  # - sudo apt-get install libxcb1-dev
+  # - sudo apt-get install libxkbfile-dev
+  # - sudo apt-get install libxkbcommon-dev
+  # - sudo apt-get install libxkbcommon-x11-dev
+  # - sudo apt-get install libx11-xcb1
+  # - sudo apt-get install libxkbfile1
+  # - sudo apt-get install libxss1
 script:
   - mkdir -p build
   - cd build
   - cmake ..
   - cmake --build .
+  - ls /usr/lib/x86_64-linux-gnu

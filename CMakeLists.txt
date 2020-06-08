@@ -10,6 +10,7 @@ include(CheckIncludeFileCXX)
 # enable_testing()
 
 add_library(default INTERFACE)
+set(CMAKE_CXX_STANDARD 17)
 target_compile_features(default INTERFACE cxx_std_17)
 
 find_package(Threads)
@@ -41,28 +42,3 @@ add_subdirectory(src)
 # set(CPACK_PROJECT_NAME ${PROJECT_NAME}) set(CPACK_PROJECT_VERSION
 # ${PROJECT_VERSION}) include(CPack)
 
-# FetchContent_Declare( json GIT_REPOSITORY
-# https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent.git GIT_TAG
-# v3.7.3)
-
-# FetchContent_GetProperties(json) if(NOT json_POPULATED)
-# FetchContent_Populate(json) add_subdirectory(${json_SOURCE_DIR}
-# ${json_BINARY_DIR} EXCLUDE_FROM_ALL) endif()
-
-# FetchContent_Declare( clip GIT_REPOSITORY https://github.com/dacap/clip.git
-# GIT_TAG origin/master) FetchContent_GetProperties(clip) if(NOT clip_POPULATED)
-# FetchContent_Populate(clip) add_subdirectory(${clip_SOURCE_DIR}
-# ${clip_BINARY_DIR} EXCLUDE_FROM_ALL) endif()
-
-# FetchContent_Declare( nana_lib GIT_REPOSITORY
-# https://github.com/cnjinhao/nana.git GIT_TAG v1.7.3 # origin/master )
-# FetchContent_GetProperties(nana_lib) if(NOT nana_lib_POPULATED)
-# FetchContent_Populate(nana_lib) add_subdirectory(${nana_lib_SOURCE_DIR}
-# ${nana_lib_BINARY_DIR} EXCLUDE_FROM_ALL) endif()
-
-# FetchContent_Declare( uiohook GIT_REPOSITORY
-# https://github.com/univrsal/libuiohook.git # main repo
-# https://github.com/kwhat/libuiohook.git GIT_TAG origin/cmake)
-# FetchContent_GetProperties(uiohook) if(NOT uiohook_POPULATED)
-# FetchContent_Populate(uiohook) add_subdirectory(${uiohook_SOURCE_DIR}
-# ${uiohook_BINARY_DIR} EXCLUDE_FROM_ALL) endif()
