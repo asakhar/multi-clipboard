@@ -32,3 +32,4 @@ script:
   - cd build
   - ~/temp/cmake-$version.$build/bin/cmake ..
   - ~/temp/cmake-$version.$build/bin/cmake --build .
+  - ctest

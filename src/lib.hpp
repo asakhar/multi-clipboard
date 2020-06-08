@@ -1,7 +1,6 @@
 #pragma once
 
 #include <clip.h>
-#include <condition_variable>
 #include <fstream>
 #include <future>
 #include <iostream>
@@ -54,17 +53,9 @@ struct Config {
   // Max number of copied entries to be stored at once
   // Removes previos one (from the begining) if limit reached
   int max_entries{10};
+
   // Masks for keys to be used as hotkeys
   // Mask is determined as 2^position in vector
-
-  // std::vector<uint16_t> key_masks{uiohook::VC_YEN /*1*/,
-  //                                 uiohook::VC_CONTROL_L /*2*/,
-  //                                 uiohook::VC_SHIFT_L /*4*/,
-  //                                 uiohook::VC_ALT_L /*8*/,
-  //                                 uiohook::VC_C /*16*/,
-  //                                 uiohook::VC_V /*32*/,
-  //                                 uiohook::VC_X /*64*/};
-//private:
   std::map<uint16_t, uint64_t> key_masks{
       {uiohook::VC_YEN, 1},     {uiohook::VC_CONTROL_L, 2},
       {uiohook::VC_SHIFT_L, 4}, {uiohook::VC_ALT_L, 8},
@@ -155,8 +146,6 @@ extern bool main_loop;
 constexpr size_t MAX_LEN = 70;
 // Mutex shared between main and hook loops
 extern std::mutex zone_mutex;
-// Condition that main loop waints to be signaled from form loop
-extern std::condition_variable choice_awaiter;
 // Events to be ignored (self produced) queue
 extern std::queue<uiohook::uiohook_event> ignore_events;
 // Config data
@@ -164,7 +153,6 @@ extern Config config;
 // Clipboard stored data
 extern Clipboard clipboard;
 // Form pointer
-// There is no need to use smart poiner but U asked for it so...
 extern nana::form *fm;
 // Listbox pointer
 extern nana::listbox *lb;

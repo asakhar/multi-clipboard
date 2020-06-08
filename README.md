@@ -1,6 +1,10 @@
 # Multi-clipboard [![Build Status](https://travis-ci.com/asakhar/multi-clipboard.svg?branch=master-fixed)](https://travis-ci.com/asakhar/multi-clipboard)
 Multi-space clipboard
 
+## Mutex zone_mutex
+  - locks in the begining of each process'es loop
+  - needed just to because hook works in another process but it's not intented to calculate something asynchronously
+
 ## Files:
 - ### "argparse.hpp":
   #### Provides a class to handle arguments, especially commandline args
@@ -82,3 +86,4 @@ Multi-space clipboard
     * [ ] FetchContent
     * Language C++
   - libs dependencies
+

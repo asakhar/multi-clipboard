@@ -42,8 +42,10 @@ void perform_paste() {
   if (selected_text) {
     std::string check_str;
     if (!clip::set_text(*selected_text) || !clip::get_text(check_str))
-      std::cerr << "can't set text\n";
+      std::cerr << "can't set text" << std::endl;
     else {
+      while (fm->visible())
+        ;
       if (console_paste)
         uiohook::click_keys(
             {uiohook::VC_CONTROL_L, uiohook::VC_SHIFT_L, uiohook::VC_V});
@@ -100,7 +102,7 @@ void main_proc() {
       }
 #ifdef DEBUG
       if (pressed_keys)
-        std::cout << "keys " << std::hex << pressed_keys << "\n";
+        std::cout << "keys " << std::hex << pressed_keys << std::endl;
 #endif
       if (!pressed_keys)
         action_flag = action_flag_t::PASS;
@@ -182,10 +184,11 @@ int main(int argc, char *argv[]) {
   window.collocate();
 
   main_proc();
+  window.show();
 
   nana::exec();
   clipboard.save(config.buffer_path);
   config.save();
-  std::cout << "Form closed. (0)\n";
+  std::cout << "Form closed. (0)" << std::endl;
   return 0;
 }

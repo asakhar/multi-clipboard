@@ -5,7 +5,6 @@ action_flag_t action_flag = action_flag_t::PASS;
 bool main_loop = true;
 
 std::mutex zone_mutex;
-std::condition_variable choice_awaiter;
 std::queue<uiohook::uiohook_event> ignore_events;
 
 Config config;
@@ -48,7 +47,7 @@ void click_keys(std::vector<uint16_t> const &keys) {
   release_keys(keys);
 }
 
-bool operator==(uiohook_event &a, uiohook_event &b) {
+bool operator==(uiohook_event const &a, uiohook_event const &b) {
   return a.type == b.type && a.data.keyboard.keycode == b.data.keyboard.keycode;
 }
 
