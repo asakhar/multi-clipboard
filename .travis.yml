@@ -31,5 +31,6 @@ script:
   - mkdir -p build
   - cd build
   - ~/temp/cmake-$version.$build/bin/cmake ..
+  - env DISPLAY=
   - ~/temp/cmake-$version.$build/bin/cmake --build .
   - ctest
