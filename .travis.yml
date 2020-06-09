@@ -28,7 +28,6 @@ before_install:
   - "export DISPLAY=:99.0"
 
 script:
-  - xvfb-run --server-args="-screen 0 1024x768x24" make test
   - version=3.17
   - build=3-Linux-x86_64
   - cd /home/travis/build/asakhar/multi-clipboard
