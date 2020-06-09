@@ -2,7 +2,7 @@
 Multi-space clipboard
 
 ## Mutex zone_mutex
-  - locks in the begining of each process'es loop
+  - locks in the begining of each process's loop
   - needed just to because hook works in another process but it's not intented to calculate something asynchronously
 
 ## Files:
